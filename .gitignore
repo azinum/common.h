@@ -1,0 +1,7 @@
+*.swp
+*.swo
+*.exe
+*.wasm
+
+test
+.DS_Store
