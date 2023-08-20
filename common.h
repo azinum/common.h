@@ -4,6 +4,8 @@
 // NO_STDLIB
 // NO_STDIO
 // NO_SIMD
+// NO_ASSERT
+// ASSERT
 // NPROC
 // CACHELINESIZE
 // BITS = 64|32
@@ -63,19 +65,15 @@ typedef uint8_t u8;
 
 #if __APPLE__ || __MACH__
   #define TARGET_APPLE
-#endif
-
-#if __linux__
+#elif __linux__
   #define TARGET_LINUX
-#endif
-
-#if _WIN32 || _WIN64
+#elif _WIN32 || _WIN64
   #define TARGET_WINDOWS
   #include <windows.h>
-#endif
-
-#ifdef TARGET_WASM
+#elif defined(TARGET_WASM)
   #define ssize_t intmax_t
+#else
+  #error "unsupported target"
 #endif
 
 #ifndef MAX_PATH_LENGTH
@@ -192,16 +190,20 @@ typedef enum { Ok = 0, Error } Result;
   #define EXIT_FAILURE 1
 #endif
 
-#ifndef BUILD_RELEASE
-#define ASSERT(...) \
-  do { \
-    if (!(__VA_ARGS__)) { \
-      report_assert_failure(STDERR_FILENO, __FILE__, __LINE__, __FUNCTION_NAME__, #__VA_ARGS__); \
-      DEBUG_BREAK; \
-    } \
-  } while (0)
+#ifndef NO_ASSERT
+  #ifdef ASSERT
+    // use custom assert macro
+  #else
+    #define ASSERT(...) \
+      do { \
+        if (!(__VA_ARGS__)) { \
+          report_assert_failure(STDERR_FILENO, __FILE__, __LINE__, __FUNCTION_NAME__, #__VA_ARGS__); \
+          DEBUG_BREAK; \
+        } \
+      } while (0)
+  #endif
 #else
-#define ASSERT(...)
+  #define ASSERT(...)
 #endif
 
 #define NOT_IMPLEMENTED() ASSERT(!"not implemented")
