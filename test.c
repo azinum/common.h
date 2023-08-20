@@ -5,8 +5,6 @@
 #include "stb_sprintf.h"
 
 #define COMMON_IMPLEMENTATION
-#define NO_STDLIB
-#define NO_STDIO
 #include "common.h"
 
 int add(int a, int b);
