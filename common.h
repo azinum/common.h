@@ -7,11 +7,11 @@
 //  NO_SIMD
 //  NO_ASSERT
 //  ASSERT
-//  NPROC = 1
+//  NPROC = 4
 //  CACHELINESIZE = 64
 //  BITS
 //  MAX_PATH_LENGTH = 512
-//  RAND_MAX
+//  RANDOM_MAX
 //  USE_STB_SPRINTF
 //  SPRINTF_BUFFER_SIZE
 
@@ -30,6 +30,25 @@
   #error "unsupported architecture"
 #endif
 
+#ifndef NO_SIMD
+  #if __SSE__
+    #define USE_SIMD
+    #include <xmmintrin.h>
+  #endif
+#endif
+
+#ifdef MIN
+  #undef MIN
+#endif
+
+#ifdef MAX
+  #undef MAX
+#endif
+
+#define MIN(x, y) (x < y ? x : y)
+#define MAX(x, y) (x > y ? x : y)
+#define CLAMP(x, x_min, x_max) MIN(MAX(x_min, x), x_max)
+
 // common type definitions
 #if BITS == 64
   typedef double f64;
@@ -45,7 +64,7 @@ typedef int8_t i8;
 typedef uint8_t u8;
 
 #ifndef bool
-  typedef char bool;
+  #include <stdbool.h>
 #endif
 
 #ifndef true
@@ -57,7 +76,7 @@ typedef uint8_t u8;
 #endif
 
 #ifndef NPROC
-  #define NPROC 1
+  #define NPROC 4
 #endif
 
 #ifndef CACHELINESIZE
@@ -80,6 +99,8 @@ typedef uint8_t u8;
 #ifndef MAX_PATH_LENGTH
   #define MAX_PATH_LENGTH 512
 #endif
+
+#define EXTRACTBIT(ith, byte) (byte & (1 << ith))
 #define ALIGN(N, ALIGNMENT) ((N % ALIGNMENT) ? (N + ALIGNMENT - (N % ALIGNMENT)) : N)
 #define LENGTH(ARR) (sizeof(ARR) / sizeof(ARR[0]))
 #define return_defer(value) do { result = (value); goto defer; } while (0)
@@ -88,8 +109,16 @@ typedef uint8_t u8;
 #define return_if(cond, ...) if ((cond)) { return __VA_ARGS__; }
 typedef enum { Ok = 0, Error } Result;
 
-#ifndef RAND_MAX
-  #define RAND_MAX (size_t)((~0-1) >> 1)
+const char* bool_str[] = { "false", "true" };
+
+#define Kb(n) (n * 1024)
+#define Mb(n) (Kb(n * 1024))
+#define Gb(n) (Mb(n * 1024))
+
+#define PI32 3.14159265359f
+
+#ifndef RANDOM_MAX
+  #define RANDOM_MAX (size_t)((~0-1) >> 1)
 #endif
 
 #ifdef NO_STDLIB
@@ -106,19 +135,30 @@ typedef enum { Ok = 0, Error } Result;
   #include <string.h> // memset, memcpy
 #endif
 
-#ifdef NO_STDIO
-  i32 printf(const char* fmt, ...);
-  i32 dprintf(i32 fd, const char* fmt, ...);
-  i32 sprintf(char* str, const char* fmt, ...);
-  i32 snprintf(char* str, size_t size, const char* fmt, ...);
-
-  i32 vprintf(const char* fmt, va_list argp);
-  i32 vdprintf(i32 fd, const char* fmt, va_list argp);
-  i32 vsprintf(char* str, const char* fmt, va_list argp);
-  i32 vsnprintf(char* str, size_t size, const char* fmt, va_list argp);
+#if defined(NO_STDIO) && defined(NO_STDLIB)
+  #ifdef USE_STB_SPRINTF
+    #define STB_WRAP(...) stb_##__VA_ARGS__
+  #else
+    #define STB_WRAP(...) __VA_ARGS__
+  #endif
 #else
   #include <stdio.h>
+  #ifdef USE_STB_SPRINTF
+    #define STB_WRAP(...) stb_##__VA_ARGS__
+  #else
+    #define STB_WRAP(...) __VA_ARGS__
+  #endif
 #endif
+
+i32 STB_WRAP(printf(const char* fmt, ...));
+i32 STB_WRAP(dprintf(i32 fd, const char* fmt, ...));
+i32 STB_WRAP(sprintf(char* str, const char* fmt, ...));
+i32 STB_WRAP(snprintf(char* str, size_t size, const char* fmt, ...));
+
+i32 STB_WRAP(vprintf(const char* fmt, va_list argp));
+i32 STB_WRAP(vdprintf(i32 fd, const char* fmt, va_list argp));
+i32 STB_WRAP(vsprintf(char* str, const char* fmt, va_list argp));
+i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list argp));
 
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
   #include <unistd.h> // read, write
@@ -211,8 +251,39 @@ typedef enum { Ok = 0, Error } Result;
 
 #define NOT_IMPLEMENTED() ASSERT(!"not implemented")
 
+#define INIT_ITEMS_SIZE 16
+#define list_init(list, desired_size) \
+  if ((list)->size < desired_size) { \
+    (list)->size = desired_size; \
+    (list)->items = memory_realloc((list)->items, (list)->size * sizeof(*(list)->items)); \
+    ASSERT((list)->items != NULL && "out of memory"); \
+  }
+
+#define list_push(list, item) \
+  if ((list)->count >= (list)->size) { \
+    if ((list)->size == 0) { \
+      (list)->size = INIT_ITEMS_SIZE; \
+    } \
+    else { \
+      (list)->size *= 2; \
+    } \
+    (list)->items = memory_realloc((list)->items, (list)->size * sizeof(*(list)->items)); \
+    ASSERT((list)->items != NULL && "out of memory"); \
+  } \
+  (list)->items[(list)->count++] = (item)
+
+#define list_free(list) do { \
+  memory_free((list)->items); \
+  (list)->count = (list)->size = 0; \
+} while (0)
+
 void report_assert_failure(i32 fd, const char* filename, size_t line, const char* function_name, const char* message);
 i32 is_terminal(i32 fd);
+#ifdef TARGET_WINDOWS
+  bool enable_vt100_mode(void);
+#else
+  #define enable_vt100_mode(...) true
+#endif
 
 #endif // _COMMON_H
 
@@ -287,33 +358,31 @@ char* strncpy(char* dest, const char* src, size_t n) {
 
 #endif // NO_STDLIB
 
-#ifdef NO_STDIO
-
 #ifdef USE_STB_SPRINTF
 
 #ifndef SPRINTF_BUFFER_SIZE
   #define SPRINTF_BUFFER_SIZE 4096
 #endif
 
-static char sprintf_buffer[SPRINTF_BUFFER_SIZE] = {0};
+char sprintf_buffer[SPRINTF_BUFFER_SIZE] = {0};
 
-i32 printf(const char* fmt, ...) {
+inline i32 STB_WRAP(printf(const char* fmt, ...)) {
   va_list argp;
   va_start(argp, fmt);
-  size_t n = vprintf(fmt, argp);
+  size_t n = STB_WRAP(vprintf)(fmt, argp);
   va_end(argp);
   return n;
 }
 
-i32 dprintf(i32 fd,  const char* fmt, ...) {
+inline i32 STB_WRAP(dprintf(i32 fd,  const char* fmt, ...)) {
   va_list argp;
   va_start(argp, fmt);
-  size_t n = vdprintf(fd, fmt, argp);
+  size_t n = STB_WRAP(vdprintf)(fd, fmt, argp);
   va_end(argp);
   return n;
 }
 
-i32 sprintf(char* str, const char* fmt, ...) {
+inline i32 STB_WRAP(sprintf(char* str, const char* fmt, ...)) {
   va_list argp;
   va_start(argp, fmt);
   size_t n = stbsp_vsprintf(str, fmt, argp);
@@ -321,7 +390,7 @@ i32 sprintf(char* str, const char* fmt, ...) {
   return n;
 }
 
-i32 snprintf(char* str, size_t size, const char* fmt, ...) {
+inline i32 STB_WRAP(snprintf(char* str, size_t size, const char* fmt, ...)) {
   va_list argp;
   va_start(argp, fmt);
   size_t n = stbsp_vsnprintf(str, size, fmt, argp);
@@ -329,30 +398,27 @@ i32 snprintf(char* str, size_t size, const char* fmt, ...) {
   return n;
 }
 
-i32 vprintf(const char* fmt, va_list argp) {
-  return vdprintf(STDOUT_FILENO, fmt, argp);
+inline i32 STB_WRAP(vprintf(const char* fmt, va_list argp)) {
+  return STB_WRAP(vdprintf)(STDOUT_FILENO, fmt, argp);
 }
 
-i32 vdprintf(i32 fd, const char* fmt, va_list argp) {
+inline i32 STB_WRAP(vdprintf(i32 fd, const char* fmt, va_list argp)) {
   size_t n = stbsp_vsnprintf(sprintf_buffer, SPRINTF_BUFFER_SIZE, fmt, argp);
-  write(fd, sprintf_buffer, n);
-  return n;
+  return write(fd, sprintf_buffer, n);
 }
 
-i32 vsprintf(char* str, const char* fmt, va_list argp) {
+inline i32 STB_WRAP(vsprintf(char* str, const char* fmt, va_list argp)) {
   return stbsp_vsprintf(str, fmt, argp);
 }
 
-i32 vsnprintf(char* str, size_t size, const char* fmt, va_list argp) {
+inline i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list argp)) {
   return stbsp_vsnprintf(str, size, fmt, argp);
 }
 
 #endif // USE_STB_SPRINTF
 
-#endif // NO_STDIO
-
 void report_assert_failure(i32 fd, const char* filename, size_t line, const char* function_name, const char* message) {
-  dprintf(fd, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+  STB_WRAP(dprintf)(fd, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
 }
 
 i32 is_terminal(i32 fd) {
@@ -364,6 +430,17 @@ i32 is_terminal(i32 fd) {
   return 0;
 #endif
 }
+
+#ifdef TARGET_WINDOWS
+bool enable_vt100_mode(void) {
+  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+  DWORD console_mode = 0;
+  GetConsoleMode(handle, &console_mode);
+  console_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  console_mode |= DISABLE_NEWLINE_AUTO_RETURN;
+  return SetConsoleMode(handle, console_mode) != 0;
+}
+#endif
 
 #endif // COMMON_IMPLEMENTATION
 

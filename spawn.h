@@ -150,7 +150,7 @@ inline void ticket_mutex_end(Ticket* mutex) {
 }
 
 inline void spin_wait(void) {
-#if USE_SIMD
+#ifdef USE_SIMD
   _mm_pause();
 #else
   sleep(0);
