@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CC="clang"
+CC="gcc"
 FLAGS="-pedantic -Wall"
 NPROC=`nproc`
 CACHELINESIZE=`getconf LEVEL1_DCACHE_LINESIZE`

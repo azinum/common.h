@@ -1,12 +1,11 @@
-// spawn.h
-// thread spawner with ticket mutex implementation
+// thread.h
 
 // macros:
-//  SPAWN_IMPLEMENTATION
+//  THREAD_IMPLEMENTATION
 //  MAX_THREADS = 64
 
-#ifndef _SPAWN_H
-#define _SPAWN_H
+#ifndef _THREAD_H
+#define _THREAD_H
 
 #include "common.h"
 
@@ -35,14 +34,14 @@ typedef struct Thread {
   #define MAX_THREADS 64
 #endif
 
-typedef struct Spawn {
+typedef struct Thread_state {
   Thread threads[MAX_THREADS];
-} Spawn;
+} Thread_state;
 
-#endif // _SPAWN_H
+#endif // _THREAD_H
 
-extern void spawn_init(void);
-extern i32 thread_spawn(thread_func_sig thread_func, void* data);
+extern void thread_init(void);
+extern i32 thread_create(thread_func_sig thread_func, void* data);
 extern Result thread_join(i32 id);
 extern void thread_exit(void);
 extern size_t atomic_fetch_add(volatile size_t* target, size_t value);
@@ -52,15 +51,15 @@ extern void ticket_mutex_begin(Ticket* mutex);
 extern void ticket_mutex_end(Ticket* mutex);
 extern void spin_wait(void);
 
-#ifdef SPAWN_IMPLEMENTATION
+#ifdef THREAD_IMPLEMENTATION
 
 static char* thread_error_string = "";
 
-static Spawn spawn = {0};
+static Thread_state thread_state = {0};
 
-void spawn_init(void) {
+void thread_init(void) {
   for (size_t i = 0; i < MAX_THREADS; ++i) {
-    Thread* t      = &spawn.threads[i];
+    Thread* t      = &thread_state.threads[i];
     t->thread      = 0,
     t->thread_func = NULL;
     t->data        = NULL;
@@ -68,11 +67,11 @@ void spawn_init(void) {
   }
 }
 
-i32 thread_spawn(thread_func_sig thread_func, void* data) {
+i32 thread_create(thread_func_sig thread_func, void* data) {
   Thread* thread = NULL;
   i32 id = -1;
   for (size_t i = 0 ; i < MAX_THREADS; ++i) {
-    Thread* t = &spawn.threads[i];
+    Thread* t = &thread_state.threads[i];
     if (t->active == false) {
       thread = t;
       id = i;
@@ -104,7 +103,7 @@ i32 thread_spawn(thread_func_sig thread_func, void* data) {
 
 Result thread_join(i32 id) {
   ASSERT(id >= 0 && id < MAX_THREADS);
-  Thread* thread = &spawn.threads[id];
+  Thread* thread = &thread_state.threads[id];
   i32 err = pthread_join(thread->thread, NULL);
   if (!err) {
     thread->active = false;
@@ -157,5 +156,5 @@ inline void spin_wait(void) {
 #endif
 }
 
-#endif // SPAWN_IMPLEMENTATION
-#undef SPAWN_IMPLEMENTATION
+#endif // THREAD_IMPLEMENTATION
+#undef THREAD_IMPLEMENTATION
