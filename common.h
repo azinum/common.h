@@ -89,7 +89,6 @@ typedef uint8_t u8;
   #define TARGET_LINUX
 #elif _WIN32 || _WIN64
   #define TARGET_WINDOWS
-  #include <windows.h>
 #elif defined(TARGET_WASM)
   #define ssize_t intmax_t
 #else
@@ -161,11 +160,14 @@ i32 STB_WRAP(vsprintf(char* str, const char* fmt, va_list argp));
 i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list argp));
 
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
-  #include <unistd.h> // read, write
+  #include <unistd.h> // read, write, sleep
 #elif defined(TARGET_WINDOWS)
+  #define WIN32_LEAN_AND_MEAN
   #include <io.h>
+  #include <windows.h>
   #define read _read
   #define write _write
+  #define sleep(n) Sleep(n * 1000)
 #elif defined(TARGET_WASM)
   extern i32 write(i32 fd, const void* buf, size_t size);
 #endif

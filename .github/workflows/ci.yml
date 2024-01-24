@@ -1,0 +1,43 @@
+name: CI
+on:
+  push:
+    branches: [master]
+jobs:
+  build-linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: install dependencies
+        run: |
+         sudo apt update
+      - name: build
+        run: |
+          ./build.sh
+          ./test
+  build-macos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: install dependencies
+        run: |
+          brew update
+      - name: build
+        run: |
+          ./build.sh
+          ./test
+  build-windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v1
+      - name: install dependencies
+        run: |
+          # ./install_deps.bat
+      - name: Set up GCC
+        uses: egor-tensin/setup-mingw@v2
+        with:
+          platform: x64
+      - name: build
+        run: |
+          ./build.bat
+          ./test.exe
+

@@ -18,7 +18,7 @@ typedef struct Handle {
 } Handle;
 
 void test_threads(void);
-void* hello(Handle* data);
+void* hello(void* data);
 
 i32 main(void) {
   test_threads();
@@ -48,9 +48,10 @@ void test_threads(void) {
   printf("done\n");
 }
 
-void* hello(Handle* handle) {
-  for (size_t i = 0; i < 5; ++i) {
-    printf("%zu: hello from %d\n", i, handle->value);
+void* hello(void* data) {
+  Handle* handle = (Handle*)data;
+  for (i32 i = 0; i < 5; ++i) {
+    printf("%d: hello from %d\n", i, handle->value);
     sleep(1);
   }
   return NULL;
