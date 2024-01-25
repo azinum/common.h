@@ -7,39 +7,46 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           # sudo apt update
-      - name: build
+      - name: Build
         run: |
           ./build.sh
+      - name: Run
+        run: |
           ./test
   build-macos:
     runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           # brew update
-      - name: build
+      - name: Build
         run: |
           ./build.sh
+      - name: Run
           ./test
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
-      - name: install dependencies
-        run: |
-          # ./install_deps.bat
+      - name: Clean up PATH
+        uses: egor-tensin/cleanup-path@v3
       - name: Set up MinGW
         uses: egor-tensin/setup-mingw@v2
         with:
           version: latest
           platform: x64
           hardlinks: 1
-      - name: build
+      - name: Install dependencies
+        run: |
+          # ./install_deps.bat
+      - name: Build
         run: |
           ./build.bat
+      - name: Run
+        run: |
           ./test.exe
 
