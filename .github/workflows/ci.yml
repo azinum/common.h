@@ -37,6 +37,7 @@ jobs:
         with:
           version: latest
           platform: x64
+          hardlinks: 1
       - name: build
         run: |
           ./build.bat
