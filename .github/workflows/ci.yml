@@ -26,14 +26,14 @@ jobs:
           ./build.sh
           ./test
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
       - name: install dependencies
         run: |
           # ./install_deps.bat
-      - name: Set up GCC
-        uses: egor-tensin/setup-gcc@v1
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v2
         with:
           version: latest
           platform: x64
