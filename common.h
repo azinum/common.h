@@ -88,7 +88,12 @@ typedef uint8_t u8;
 #elif __linux__
   #define TARGET_LINUX
 #elif _WIN32 || _WIN64
+  #define WIN32_LEAN_AND_MEAN
+  #define NOGDI
+  #define NOUSER
   #define TARGET_WINDOWS
+  #include <windows.h>
+  #include <io.h>
 #elif defined(TARGET_WASM)
   #define ssize_t intmax_t
 #else
@@ -120,6 +125,21 @@ const char* bool_str[] = { "false", "true" };
   #define RANDOM_MAX (size_t)((~0-1) >> 1)
 #endif
 
+#if defined(__has_builtin) // will not work for gcc versions < 10, even though the builtins may exist
+  #if __has_builtin(__builtin_expect)
+    #define LIKELY(x) (__builtin_expect(((x) != 0), 1))
+    #define UNLIKELY(x) (__builtin_expect(((x) != 0), 0))
+  #else
+    #define LIKELY(x) (x)
+    #define UNLIKELY(x) (x)
+  #endif
+#else
+  #define LIKELY(x) (x)
+  #define UNLIKELY(x) (x)
+#endif
+
+#define STR_(x) #x
+#define STR(x) STR_(x)
 #ifdef NO_STDLIB
   void* memset(void* p, i32 c, size_t n);
   void* memcpy(void* dest, const void* src, size_t n);
@@ -137,6 +157,15 @@ const char* bool_str[] = { "false", "true" };
 #if defined(NO_STDIO) && defined(NO_STDLIB)
   #ifdef USE_STB_SPRINTF
     #define STB_WRAP(...) stb_##__VA_ARGS__
+    #define printf(...)    stb_printf(__VA_ARGS__)
+    #define dprintf(...)   stb_dprintf(__VA_ARGS__)
+    #define sprintf(...)   stb_sprintf(__VA_ARGS__)
+    #define snprintf(...)  stb_snprintf(__VA_ARGS__)
+
+    #define vprintf(...)   stb_vprintf(__VA_ARGS__)
+    #define vdprintf(...)  stb_vdprintf(__VA_ARGS__)
+    #define vsprintf(...)  stb_vsprintf(__VA_ARGS__)
+    #define vsnprintf(...) stb_vsnprintf(__VA_ARGS__)
   #else
     #define STB_WRAP(...) __VA_ARGS__
   #endif
@@ -162,9 +191,6 @@ i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list argp));
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
   #include <unistd.h> // read, write, sleep
 #elif defined(TARGET_WINDOWS)
-  #define WIN32_LEAN_AND_MEAN
-  #include <io.h>
-  #include <windows.h>
   #define read _read
   #define write _write
   #define sleep(n) Sleep(n * 1000)

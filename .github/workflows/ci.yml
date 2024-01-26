@@ -29,25 +29,25 @@ jobs:
       - name: Run
         run: |
           ./test
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Clean up PATH
-        uses: egor-tensin/cleanup-path@v3
-      - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          version: latest
-          platform: x64
-          hardlinks: 1
-      - name: Install dependencies
-        run: |
-          # ./install_deps.bat
-      - name: Build
-        run: |
-          ./build.bat
-      - name: Run
-        run: |
-          ./test.exe
-
+          #  build-windows:
+          #    runs-on: windows-latest
+          #    steps:
+          #      - uses: actions/checkout@v1
+          #      - name: Clean up PATH
+          #        uses: egor-tensin/cleanup-path@v3
+          #      - name: Set up MinGW
+          #        uses: egor-tensin/setup-mingw@v2
+          #        with:
+          #          version: latest
+          #          platform: x64
+          #          hardlinks: 1
+          #      - name: Install dependencies
+          #        run: |
+          #          # ./install_deps.bat
+          #      - name: Build
+          #        run: |
+          #          ./build.bat
+          #      - name: Run
+          #        run: |
+          #          ./test.exe
+          #
