@@ -12,10 +12,9 @@ jobs:
           # sudo apt update
       - name: Build
         run: |
-          ./build.sh
-      - name: Run
-        run: |
-          ./test
+          cd tests
+          make
+          make run
   build-macos:
     runs-on: macOS-latest
     steps:
@@ -25,10 +24,9 @@ jobs:
           # brew update
       - name: Build
         run: |
-          ./build.sh
-      - name: Run
-        run: |
-          ./test
+          cd tests
+          make
+          make run
           #  build-windows:
           #    runs-on: windows-latest
           #    steps:

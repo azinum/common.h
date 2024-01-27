@@ -82,7 +82,7 @@ void thread_init(void) {
 i32 thread_create(thread_func_sig thread_func, void* data) {
   Thread* thread = NULL;
   i32 id = -1;
-  for (size_t i = 0 ; i < MAX_THREADS; ++i) {
+  for (size_t i = 0; i < MAX_THREADS; ++i) {
     Thread* t = &thread_state.threads[i];
     if (t->active == false) {
       thread = t;
@@ -110,7 +110,7 @@ i32 thread_create(thread_func_sig thread_func, void* data) {
       default: break;
     }
   }
-  return -1;
+  return id;
 }
 
 Result thread_join(i32 id) {
