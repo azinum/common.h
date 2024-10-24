@@ -14,6 +14,13 @@ typedef struct Ticket {
   volatile size_t serving;
 } Ticket;
 
+typedef struct Barrier {
+  volatile size_t count;
+  volatile size_t waiting;
+  volatile size_t thread_count;
+  Ticket fence;
+} Barrier;
+
 #ifndef MAX_THREADS
   #define MAX_THREADS 64
 #endif
@@ -45,21 +52,28 @@ typedef void* (*thread_func_sig)(void*);
 
 typedef struct Thread_state {
   Thread threads[MAX_THREADS];
+  Ticket mutex; // lock when creating new threads
 } Thread_state;
 
 #endif // _THREAD_H
 
 extern void thread_init(void);
 extern i32 thread_create(thread_func_sig thread_func, void* data);
+extern i32 thread_create_v2(void* thread_func, void* data);
 extern Result thread_join(i32 id);
 extern void thread_exit(void);
 
 extern size_t atomic_fetch_add(volatile size_t* target, size_t value);
+extern size_t atomic_fetch_sub(volatile size_t* target, size_t value);
+extern size_t atomic_load(volatile size_t* target);
+extern void atomic_store(volatile size_t* target, size_t value);
 extern size_t atomic_compare_exchange(volatile size_t* target, size_t value, size_t expected);
 extern Ticket ticket_mutex_new(void);
 extern void ticket_mutex_begin(Ticket* mutex);
 extern void ticket_mutex_end(Ticket* mutex);
 extern void spin_wait(void);
+extern Barrier barrier_new(size_t thread_count);
+extern void barrier_wait(Barrier* barrier);
 
 #ifdef THREAD_IMPLEMENTATION
 
@@ -77,9 +91,15 @@ void thread_init(void) {
     t->data        = NULL;
     t->active      = false;
   }
+  thread_state.mutex = ticket_mutex_new();
 }
 
 i32 thread_create(thread_func_sig thread_func, void* data) {
+  return thread_create_v2(thread_func, data);
+}
+
+i32 thread_create_v2(void* thread_func, void* data) {
+  ticket_mutex_begin(&thread_state.mutex); // use mutex here so there will be no thread id collisions
   Thread* thread = NULL;
   i32 id = -1;
   for (size_t i = 0; i < MAX_THREADS; ++i) {
@@ -101,6 +121,7 @@ i32 thread_create(thread_func_sig thread_func, void* data) {
       data
     );
     if (!err) {
+      ticket_mutex_end(&thread_state.mutex);
       return id;
     }
     switch (err) {
@@ -110,6 +131,7 @@ i32 thread_create(thread_func_sig thread_func, void* data) {
       default: break;
     }
   }
+  ticket_mutex_end(&thread_state.mutex);
   return id;
 }
 
@@ -155,6 +177,11 @@ void thread_init(void) {
 }
 
 i32 thread_create(thread_func_sig thread_func, void* data) {
+  return thread_create_v2(thread_func, data);
+}
+
+i32 thread_create_v2(void* thread_func, void* data) {
+  ticket_mutex_begin(&thread_state.mutex);
   Thread* thread = NULL;
   i32 id = -1;
   for (size_t i = 0 ; i < MAX_THREADS; ++i) {
@@ -180,10 +207,13 @@ i32 thread_create(thread_func_sig thread_func, void* data) {
     );
     if (!thread->handle) {
       thread_error_string = "failed to create thread";
+      ticket_mutex_end(&thread_state.mutex);
       return -1;
     }
+    ticket_mutex_end(&thread_state.mutex);
     return id;
   }
+  ticket_mutex_end(&thread_state.mutex);
   return -1;
 }
 
@@ -204,6 +234,18 @@ void thread_exit(void) {
 
 inline size_t atomic_fetch_add(volatile size_t* target, size_t value) {
   return __atomic_fetch_add(target, value, __ATOMIC_SEQ_CST);
+}
+
+inline size_t atomic_fetch_sub(volatile size_t* target, size_t value) {
+  return __atomic_fetch_sub(target, value, __ATOMIC_SEQ_CST);
+}
+
+inline size_t atomic_load(volatile size_t* target) {
+  return __atomic_load_n(target, __ATOMIC_SEQ_CST);
+}
+
+inline void atomic_store(volatile size_t* target, size_t value) {
+  __atomic_store_n(target, value, __ATOMIC_SEQ_CST);
 }
 
 inline size_t atomic_compare_exchange(volatile size_t* target, size_t value, size_t expected) {
@@ -234,6 +276,30 @@ inline void spin_wait(void) {
 #else
   sleep(0);
 #endif
+}
+
+Barrier barrier_new(size_t thread_count) {
+  return (Barrier) {
+    .count = 0,
+    .waiting = 0,
+    .thread_count = thread_count,
+    .fence = ticket_mutex_new(),
+  };
+}
+
+void barrier_wait(Barrier* barrier) {
+  atomic_fetch_add(&barrier->count, 1);
+  atomic_fetch_add(&barrier->waiting, 1);
+  while (atomic_load(&barrier->count) < barrier->thread_count) {
+    spin_wait();
+  }
+  atomic_fetch_sub(&barrier->waiting, 1);
+  ticket_mutex_begin(&barrier->fence);
+  if (atomic_load(&barrier->waiting) == 0) {
+    atomic_store(&barrier->count, 0);
+  }
+  spin_wait();
+  ticket_mutex_end(&barrier->fence);
 }
 
 #endif // THREAD_IMPLEMENTATION

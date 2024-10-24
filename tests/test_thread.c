@@ -1,9 +1,5 @@
 // test.c
 
-#define STB_SPRINTF_IMPLEMENTATION
-#define USE_STB_SPRINTF
-#include "stb_sprintf.h"
-
 #define COMMON_IMPLEMENTATION
 #include "common.h"
 
