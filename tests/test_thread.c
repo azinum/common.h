@@ -1,12 +1,12 @@
 // test.c
 
+#include "test_common.h"
+
 #define COMMON_IMPLEMENTATION
 #include "common.h"
 
 #define THREAD_IMPLEMENTATION
 #include "thread.h"
-
-#include "test_common.h"
 
 #define THREAD_COUNT (NPROC * 4)
 

@@ -3,9 +3,11 @@
 #ifndef _TEST_COMMON_H
 #define _TEST_COMMON_H
 
-#define STB_SPRINTF_IMPLEMENTATION
-#define USE_STB_SPRINTF
-#include "stb_sprintf.h"
+#ifndef __APPLE__
+  #define STB_SPRINTF_IMPLEMENTATION
+  #define USE_STB_SPRINTF
+  #include "stb_sprintf.h"
+#endif
 
 #ifdef VERBOSE
   #define verbose_printf(...) printf(__VA_ARGS__)

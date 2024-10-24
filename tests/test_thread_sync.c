@@ -1,5 +1,7 @@
 // test_thread_sync.c
 
+#include "test_common.h"
+
 #define COMMON_IMPLEMENTATION
 #include "common.h"
 
@@ -8,8 +10,6 @@
 
 #define RANDOM_IMPLEMENTATION
 #include "random.h"
-
-#include "test_common.h"
 
 #define THREAD_COUNT (NPROC * 1)
 
