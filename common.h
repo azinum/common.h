@@ -178,15 +178,15 @@ const char* bool_str[] = { "false", "true" };
   #endif
 #endif
 
-i32 STB_WRAP(printf(const char* fmt, ...));
-i32 STB_WRAP(dprintf(i32 fd, const char* fmt, ...));
-i32 STB_WRAP(sprintf(char* str, const char* fmt, ...));
-i32 STB_WRAP(snprintf(char* str, size_t size, const char* fmt, ...));
+extern i32 STB_WRAP(printf(const char* fmt, ...));
+extern i32 STB_WRAP(dprintf(i32 fd, const char* fmt, ...));
+extern i32 STB_WRAP(sprintf(char* str, const char* fmt, ...));
+extern i32 STB_WRAP(snprintf(char* str, size_t size, const char* fmt, ...));
 
-i32 STB_WRAP(vprintf(const char* fmt, va_list argp));
-i32 STB_WRAP(vdprintf(i32 fd, const char* fmt, va_list argp));
-i32 STB_WRAP(vsprintf(char* str, const char* fmt, va_list argp));
-i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list argp));
+extern i32 STB_WRAP(vprintf(const char* fmt, va_list argp));
+extern i32 STB_WRAP(vdprintf(i32 fd, const char* fmt, va_list argp));
+extern i32 STB_WRAP(vsprintf(char* str, const char* fmt, va_list argp));
+extern i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list argp));
 
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
   #include <unistd.h> // read, write, sleep
