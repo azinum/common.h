@@ -298,7 +298,6 @@ void barrier_wait(Barrier* barrier) {
   if (atomic_load(&barrier->waiting) == 0) {
     atomic_store(&barrier->count, 0);
   }
-  spin_wait();
   ticket_mutex_end(&barrier->fence);
 }
 

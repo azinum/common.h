@@ -1,4 +1,4 @@
-// test.c
+// test_thread_with_mutex.c
 
 #include "test_common.h"
 
@@ -24,7 +24,7 @@ typedef struct Handle {
 } Handle;
 
 i32 test(void);
-void* hello(void* data);
+void* hello(Handle* handle);
 
 i32 main(void) {
   return test();
@@ -44,7 +44,7 @@ i32 test(void) {
     handle->shared = &shared;
     handle->work_count = 0;
     handle->id = -1;
-    if ((handle->id = thread_create(hello, handle)) < 0) {
+    if ((handle->id = thread_create_v2(hello, handle)) < 0) {
       return EXIT_FAILURE;
     }
   }
@@ -60,8 +60,7 @@ i32 test(void) {
   return EXIT_SUCCESS;
 }
 
-void* hello(void* data) {
-  Handle* handle = (Handle*)data;
+void* hello(Handle* handle) {
   for (i32 i = 0; i < NUM_WORK_PER_THREAD; ++i) {
     const i32 increment = 1;
     ticket_mutex_begin(&handle->shared->mutex);

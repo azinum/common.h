@@ -1,4 +1,4 @@
-// test.c
+// test_thread.c
 
 #include "test_common.h"
 
@@ -8,7 +8,7 @@
 #define THREAD_IMPLEMENTATION
 #include "thread.h"
 
-#define THREAD_COUNT (NPROC * 4)
+#define THREAD_COUNT NPROC * 4
 
 typedef struct Handle {
   i32 value;
@@ -16,7 +16,7 @@ typedef struct Handle {
 } Handle;
 
 i32 test(void);
-void* hello(void* data);
+void* hello(Handle* handle);
 
 i32 main(void) {
   return test();
@@ -31,7 +31,7 @@ i32 test(void) {
     Handle* handle = &threads[i];
     handle->value = i;
     handle->id = -1;
-    handle->id = thread_create(hello, handle);
+    handle->id = thread_create_v2(hello, handle);
     if (handle->id < 0) {
       return EXIT_FAILURE;
     }
@@ -47,8 +47,7 @@ i32 test(void) {
   return EXIT_SUCCESS;
 }
 
-void* hello(void* data) {
-  Handle* handle = (Handle*)data;
+void* hello(Handle* handle) {
   (void)handle; // hide warning, for when VERBOSE is not defined
   for (i32 i = 0; i < 5; ++i) {
     verbose_printf("thread %2d: said hello\n", handle->id);

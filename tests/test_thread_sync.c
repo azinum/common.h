@@ -27,13 +27,14 @@ typedef struct Handle {
 
 i32 test(void);
 void* work(Handle* data);
+void sleep_ms(size_t ms);
 
 i32 main(void) {
   return test();
 }
 
 i32 test(void) {
-  random_init(time(0));
+  random_init(1234);
   thread_init();
   Shared shared = {
     .barrier = barrier_new(THREAD_COUNT),
@@ -63,18 +64,25 @@ i32 test(void) {
 
 void* work(Handle* data) {
   verbose_printf("%d: start\n", data->id);
-  time_t seconds = 0;
   time_t ms = 300 + random_number() % 700;
-  struct timespec ts = {
-    .tv_sec = seconds,
-    .tv_nsec = ms * 1e+6,
-  };
   for (i32 work_index = 0; work_index < 8; ++work_index) {
-    verbose_printf("%d: waiting for %g seconds\n", data->id, seconds + ms/1000.0f);
-    nanosleep(&ts, NULL);
+    verbose_printf("%d: waiting for %g seconds\n", data->id, ms/1000.0f);
+    sleep_ms(ms);
     verbose_printf("%d: wait for barrier (%d)\n", data->id, work_index);
     barrier_wait(&data->shared->barrier);
   }
   verbose_printf("%d: end\n", data->id);
   return NULL;
+}
+
+void sleep_ms(size_t ms) {
+#ifdef TARGET_WINDOWS
+  Sleep(ms);
+#else
+  struct timespec ts = {
+    .tv_sec = 0,
+    .tv_nsec = ms * 1e+6,
+  };
+  nanosleep(&ts, NULL);
+#endif
 }
