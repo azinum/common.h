@@ -44,6 +44,7 @@ jobs:
           # ./install_deps.bat
       - name: Build
         run: |
+          cd tests
           ./build.bat
       - name: Run
         run: |
