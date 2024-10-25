@@ -11,7 +11,8 @@
 #define RANDOM_IMPLEMENTATION
 #include "random.h"
 
-#define THREAD_COUNT (NPROC * 1)
+#define THREAD_COUNT (NPROC * 2)
+#define NUM_WORK_PER_THREAD 4
 
 #include <math.h>
 
@@ -65,7 +66,7 @@ i32 test(void) {
 void* work(Handle* data) {
   verbose_printf("%d: start\n", data->id);
   time_t ms = 300 + random_number() % 700;
-  for (i32 work_index = 0; work_index < 8; ++work_index) {
+  for (i32 work_index = 0; work_index < NUM_WORK_PER_THREAD; ++work_index) {
     verbose_printf("%d: waiting for %g seconds\n", data->id, ms/1000.0f);
     sleep_ms(ms);
     verbose_printf("%d: wait for barrier (%d)\n", data->id, work_index);

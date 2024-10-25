@@ -9,7 +9,7 @@
 #include "thread.h"
 
 #define THREAD_COUNT (NPROC * 4)
-#define NUM_WORK_PER_THREAD 25
+#define NUM_WORK_PER_THREAD 8
 #define TOTAL_WORK (THREAD_COUNT * NUM_WORK_PER_THREAD)
 
 typedef struct Shared {
