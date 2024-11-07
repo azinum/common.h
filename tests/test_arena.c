@@ -21,8 +21,8 @@ i32 test(void) {
   i32 b_count = 12;
   i32* b = NULL;
   Arena arena = arena_new(1024);
-  a = arena_alloc(&arena, a_count * sizeof(i32));
-  b = arena_alloc(&arena, b_count * sizeof(i32));
+  a = (i32*)arena_alloc(&arena, a_count * sizeof(i32));
+  b = (i32*)arena_alloc(&arena, b_count * sizeof(i32));
   for (i32 i = 0; i < a_count; ++i) {
     a[i] = i * 2;
   }

@@ -48,7 +48,7 @@ i32 test(void) {
     handle->shared = &shared;
     handle->count = 0;
     handle->id = -1;
-    if ((handle->id = thread_create_v2(work, handle)) < 0) {
+    if ((handle->id = thread_create_v2((void*)work, handle)) < 0) {
       return EXIT_FAILURE;
     }
   }
@@ -65,7 +65,7 @@ i32 test(void) {
 
 void* work(Handle* data) {
   verbose_printf("%d: start\n", data->id);
-  time_t ms = 300 + random_number() % 700;
+  size_t ms = 300 + random_number() % 700;
   for (i32 work_index = 0; work_index < NUM_WORK_PER_THREAD; ++work_index) {
     verbose_printf("%d: waiting for %g seconds\n", data->id, ms/1000.0f);
     sleep_ms(ms);

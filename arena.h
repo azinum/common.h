@@ -5,6 +5,10 @@
 
 #include "common.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef ARENA_MEMORY_MALLOC
   #define ARENA_MEMORY_MALLOC malloc
 #endif
@@ -40,7 +44,7 @@ void arena_free(Arena* arena);
 
 Arena arena_new(const size_t size) {
   Arena arena = {
-    .data = arena_memory_malloc(size),
+    .data = (u8*)arena_memory_malloc(size),
     .index = 0,
     .size = size,
   };
@@ -70,3 +74,6 @@ void arena_free(Arena* arena) {
 }
 
 #endif // ARENA_IMPLEMENTATION
+#ifdef __cplusplus
+}
+#endif

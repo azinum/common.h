@@ -31,7 +31,7 @@ i32 test(void) {
     Handle* handle = &threads[i];
     handle->value = i;
     handle->id = -1;
-    handle->id = thread_create_v2(hello, handle);
+    handle->id = thread_create_v2((void*)hello, handle);
     if (handle->id < 0) {
       return EXIT_FAILURE;
     }

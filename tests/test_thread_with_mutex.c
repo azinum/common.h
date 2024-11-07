@@ -33,8 +33,8 @@ i32 main(void) {
 i32 test(void) {
   thread_init();
   Shared shared = {
-    .value = 0,
     .mutex = ticket_mutex_new(),
+    .value = 0,
   };
 
   verbose_printf("creating %d threads...\n", THREAD_COUNT);
@@ -44,7 +44,7 @@ i32 test(void) {
     handle->shared = &shared;
     handle->work_count = 0;
     handle->id = -1;
-    if ((handle->id = thread_create_v2(hello, handle)) < 0) {
+    if ((handle->id = thread_create_v2((void*)hello, handle)) < 0) {
       return EXIT_FAILURE;
     }
   }

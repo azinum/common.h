@@ -4,6 +4,10 @@
 //  THREAD_IMPLEMENTATION
 //  MAX_THREADS = 64
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef _THREAD_H
 #define _THREAD_H
 
@@ -77,9 +81,9 @@ extern void barrier_wait(Barrier* barrier);
 
 #ifdef THREAD_IMPLEMENTATION
 
-static char* thread_error_string = "";
+static char* thread_error_string = (char*)"";
 
-static Thread_state thread_state = {0};
+static Thread_state thread_state = {};
 
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
 
@@ -95,7 +99,7 @@ void thread_init(void) {
 }
 
 i32 thread_create(thread_func_sig thread_func, void* data) {
-  return thread_create_v2(thread_func, data);
+  return thread_create_v2((void*)thread_func, data);
 }
 
 i32 thread_create_v2(void* thread_func, void* data) {
@@ -111,13 +115,13 @@ i32 thread_create_v2(void* thread_func, void* data) {
     }
   }
   if (thread) {
-    thread->thread_func = thread_func;
+    thread->thread_func = (thread_func_sig)thread_func;
     thread->data        = data;
     thread->active      = true;
     i32 err = pthread_create(
       &thread->thread,
       NULL,
-      thread_func,
+      (thread_func_sig)thread_func,
       data
     );
     if (!err) {
@@ -125,9 +129,9 @@ i32 thread_create_v2(void* thread_func, void* data) {
       return id;
     }
     switch (err) {
-      case EAGAIN: thread_error_string = "insufficient resources to create new thread"; break;
-      case EINVAL: thread_error_string = "invalid settings in attr"; break;
-      case EPERM:  thread_error_string = "no permission to set the scheduling policy and parameters specified in attr"; break;
+      case EAGAIN: thread_error_string = (char*)"insufficient resources to create new thread"; break;
+      case EINVAL: thread_error_string = (char*)"invalid settings in attr"; break;
+      case EPERM:  thread_error_string = (char*)"no permission to set the scheduling policy and parameters specified in attr"; break;
       default: break;
     }
   }
@@ -144,9 +148,9 @@ Result thread_join(i32 id) {
     return Ok;
   }
   switch (err) {
-    case EDEADLK: thread_error_string = "a deadlock was detected"; break;
-    case EINVAL:  thread_error_string = "thread is not a joinable thread"; break;
-    case ESRCH:   thread_error_string = "no thread with the ID thread could be found"; break;
+    case EDEADLK: thread_error_string = (char*)"a deadlock was detected"; break;
+    case EINVAL:  thread_error_string = (char*)"thread is not a joinable thread"; break;
+    case ESRCH:   thread_error_string = (char*)"no thread with the ID thread could be found"; break;
     default: break;
   }
   return Ok;
@@ -193,7 +197,7 @@ i32 thread_create_v2(void* thread_func, void* data) {
     }
   }
   if (thread) {
-    thread->data.thread_func = thread_func;
+    thread->data.thread_func = (thread_func_sig)thread_func;
     thread->data.data = data;
     thread->active = true;
     Thread_data* thread_data = &thread->data;
@@ -206,7 +210,7 @@ i32 thread_create_v2(void* thread_func, void* data) {
       &thread->id
     );
     if (!thread->handle) {
-      thread_error_string = "failed to create thread";
+      thread_error_string = (char*)"failed to create thread";
       ticket_mutex_end(&thread_state.mutex);
       return -1;
     }
@@ -303,3 +307,7 @@ void barrier_wait(Barrier* barrier) {
 
 #endif // THREAD_IMPLEMENTATION
 #undef THREAD_IMPLEMENTATION
+
+#ifdef __cplusplus
+}
+#endif
