@@ -1,7 +1,9 @@
 # Makefile
 
-CC=gcc
-FLAGS?=-Wall -O2 -I.. -DVERBOSE
+COMPILER?=gcc
+OPT?=0
+CC=${COMPILER}
+FLAGS?=-Wall -O${OPT} -I.. -DVERBOSE
 LIBS?=
 TARGETS=${subst .c,, ${shell find . -type f -name '*.c'}}
 
