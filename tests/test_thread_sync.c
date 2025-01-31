@@ -82,7 +82,7 @@ void sleep_ms(size_t ms) {
 #else
   struct timespec ts = {
     .tv_sec = 0,
-    .tv_nsec = ms * 1e+6,
+    .tv_nsec = (time_t)(ms * 1e+6),
   };
   nanosleep(&ts, NULL);
 #endif

@@ -4,16 +4,22 @@ on:
     branches: [master]
 jobs:
   build-linux:
-    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
+    runs-on: {{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: |
           # sudo apt update
-      - name: Build
+      - name: Build and run
         run: |
           cd tests
-          make
+          make OPT=0
+          make run
+          make clean
+          make OPT=3
           make run
   build-macos:
     runs-on: macOS-latest
@@ -22,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           # brew update
-      - name: Build
+      - name: Build and run
         run: |
           cd tests
           make
@@ -48,4 +54,4 @@ jobs:
           ./build.bat
       - name: Run
         run: |
-          #  ./test.exe
+          ./test.exe

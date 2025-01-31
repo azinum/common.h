@@ -22,6 +22,10 @@
 #include <stddef.h> // size_t
 #include <stdarg.h> // va_list, va_arg
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if UINTPTR_MAX == 0xffffffffffffffff
   #define BITS 64
 #elif UINTPTR_MAX == 0xffffffff
@@ -100,6 +104,12 @@ typedef uint8_t u8;
   #error "unsupported target"
 #endif
 
+#ifdef __cplusplus
+  #define RESTRICT
+#else
+  #define RESTRICT restrict
+#endif
+
 #ifndef MAX_PATH_LENGTH
   #define MAX_PATH_LENGTH 512
 #endif
@@ -142,7 +152,7 @@ const char* bool_str[] = { "false", "true" };
 #define STR(x) STR_(x)
 #ifdef NO_STDLIB
   void* memset(void* p, i32 c, size_t n);
-  void* memcpy(void* dest, const void* src, size_t n);
+  void* memcpy(void* RESTRICT dest, const void* RESTRICT src, size_t n);
   size_t strlen(const char* s);
   size_t strnlen(const char* s, size_t maxlen);
   i32 strcmp(const char* s1, const char* s2);
@@ -313,6 +323,10 @@ i32 is_terminal(i32 fd);
   #define enable_vt100_mode(...) true
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _COMMON_H
 
 #ifdef COMMON_IMPLEMENTATION
@@ -327,7 +341,7 @@ void* memset(void* p, i32 c, size_t n) {
   return p;
 }
 
-void* memcpy(void* dest, const void* src, size_t n) {
+void* memcpy(void* RESTRICT dest, const void* RESTRICT src, size_t n) {
   u8* dest_it = (u8*)dest;
   const u8* src_it = (const u8*)src;
   for (size_t i = 0; i < n; ++i) {

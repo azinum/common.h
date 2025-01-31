@@ -4,12 +4,13 @@
 //  THREAD_IMPLEMENTATION
 //  MAX_THREADS = 64
 
+#ifndef _THREAD_H
+#define _THREAD_H
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef _THREAD_H
-#define _THREAD_H
 
 #include "common.h"
 
@@ -78,6 +79,10 @@ extern void ticket_mutex_end(Ticket* mutex);
 extern void spin_wait(void);
 extern Barrier barrier_new(size_t thread_count);
 extern void barrier_wait(Barrier* barrier);
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef THREAD_IMPLEMENTATION
 
@@ -307,7 +312,3 @@ void barrier_wait(Barrier* barrier) {
 
 #endif // THREAD_IMPLEMENTATION
 #undef THREAD_IMPLEMENTATION
-
-#ifdef __cplusplus
-}
-#endif

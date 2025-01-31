@@ -1,7 +1,7 @@
 # Makefile
 
-COMPILER?=gcc
-OPT?=0
+COMPILER?=clang
+OPT?=3
 CC=${COMPILER}
 FLAGS?=-Wall -O${OPT} -I.. -DVERBOSE
 LIBS?=
@@ -15,7 +15,9 @@ all: ${TARGETS}
 	${CC} $< -o $@ ${FLAGS} ${LIBS}
 
 clean:
-	rm ${TARGETS}
+	@for prog in ${TARGETS}; do \
+		rm $$prog; \
+	done
 
 run:
 	@for prog in ${TARGETS}; do \
