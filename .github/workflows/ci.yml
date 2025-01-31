@@ -48,10 +48,7 @@ jobs:
       - name: Install dependencies
         run: |
           # ./install_deps.bat
-      - name: Build
+      - name: Build and run
         run: |
           cd tests
           ./build.bat
-      - name: Run
-        run: |
-          ./test.exe
