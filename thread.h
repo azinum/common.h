@@ -54,6 +54,7 @@ typedef void* (*thread_func_sig)(void*);
   #error "platform not supported"
 #endif
 
+// TODO: thread pool
 typedef struct Thread_state {
   Thread threads[MAX_THREADS];
   Ticket mutex; // lock when creating new threads
@@ -67,6 +68,7 @@ COMMON_PUBLICDEC i32 thread_create_v2(void* thread_func, void* data);
 COMMON_PUBLICDEC Result thread_join(i32 id);
 COMMON_PUBLICDEC void thread_exit(void);
 
+COMMON_PUBLICDEC u32 thread_get_id(void); // TODO: map real thread ids to internal ones
 COMMON_PUBLICDEC size_t atomic_fetch_add(volatile size_t* target, size_t value);
 COMMON_PUBLICDEC size_t atomic_fetch_sub(volatile size_t* target, size_t value);
 COMMON_PUBLICDEC size_t atomic_load(volatile size_t* target);
@@ -250,32 +252,47 @@ void thread_exit(void) {
 
 #endif
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
+u32 thread_get_id(void) {
+  u32 thread_id = 0;
+#if defined(__APPLE__) && defined(__x86_64__)
+  asm("mov %%gs:0x00, %0" : "=r" (thread_id));
+#elif defined(__i386__)
+  asm("mov %%gs:0x08, %0" : "=r" (thread_id));
+#elif defined(__x86_64__)
+  asm("mov %%fs:0x10, %0" : "=r" (thread_id));
+#else
+  #error "thread_get_id: Unsupported architecture."
+#endif
+  return thread_id;
+}
+
+COMMON_PUBLICDEF
 inline size_t atomic_fetch_add(volatile size_t* target, size_t value) {
   return __atomic_fetch_add(target, value, __ATOMIC_SEQ_CST);
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline size_t atomic_fetch_sub(volatile size_t* target, size_t value) {
   return __atomic_fetch_sub(target, value, __ATOMIC_SEQ_CST);
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline size_t atomic_load(volatile size_t* target) {
   return __atomic_load_n(target, __ATOMIC_SEQ_CST);
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline void atomic_store(volatile size_t* target, size_t value) {
   __atomic_store_n(target, value, __ATOMIC_SEQ_CST);
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline size_t atomic_compare_exchange(volatile size_t* target, size_t value, size_t expected) {
   return __atomic_compare_exchange(target, &expected, &value, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline Ticket ticket_mutex_new(void) {
   return (Ticket) {
     .ticket = 0,
@@ -283,7 +300,7 @@ inline Ticket ticket_mutex_new(void) {
   };
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline void ticket_mutex_begin(Ticket* mutex) {
   size_t ticket = atomic_fetch_add(&mutex->ticket, 1);
   while (ticket != mutex->serving) {
@@ -291,12 +308,12 @@ inline void ticket_mutex_begin(Ticket* mutex) {
   };
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline void ticket_mutex_end(Ticket* mutex) {
   atomic_fetch_add(&mutex->serving, 1);
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 inline void spin_wait(void) {
 #ifdef USE_SIMD
   _mm_pause();
@@ -305,7 +322,7 @@ inline void spin_wait(void) {
 #endif
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 Barrier barrier_new(size_t thread_count) {
   return (Barrier) {
     .count = 0,
@@ -315,7 +332,7 @@ Barrier barrier_new(size_t thread_count) {
   };
 }
 
-COMMON_PUBLICDEC
+COMMON_PUBLICDEF
 void barrier_wait(Barrier* barrier) {
   atomic_fetch_add(&barrier->count, 1);
   atomic_fetch_add(&barrier->waiting, 1);
