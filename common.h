@@ -6,6 +6,7 @@
 //  NO_STDIO
 //  NO_SIMD
 //  NO_ASSERT
+//  NO_TIMER
 //  ASSERT
 //  NPROC = 4
 //  CACHELINESIZE = 64
@@ -24,6 +25,20 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifndef NO_TIMER
+  #include <time.h>
+  #define TIMER_START(...) \
+    struct timespec _timer_end = {0}; \
+    struct timespec _timer_start = {0}; \
+    clock_gettime(CLOCK_REALTIME, &_timer_start); \
+    __VA_ARGS__
+  #define TIMER_END() (clock_gettime(CLOCK_REALTIME, &_timer_end), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000000.0f) + _timer_end.tv_nsec) - (_timer_start.tv_nsec)) / 1000000000.0f)
+
+#else
+  #define TIMER_START(...)
+  #define TIMER_END() 0
 #endif
 
 #if UINTPTR_MAX == 0xffffffffffffffff
