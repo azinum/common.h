@@ -1,4 +1,6 @@
 // common.h
+// stb-style header-only library
+// thank you https://github.com/nothings/
 
 // macros:
 //  COMMON_IMPLEMENTATION
@@ -49,9 +51,11 @@ extern "C" {
   #error "unsupported architecture"
 #endif
 
+// TODO: arm NEON
 #ifndef NO_SIMD
   #if __SSE__
     #define USE_SIMD
+    #define USE_SSE
     #include <xmmintrin.h>
   #endif
 #endif
@@ -69,18 +73,16 @@ extern "C" {
 #define CLAMP(x, x_min, x_max) MIN(MAX(x_min, x), x_max)
 
 // common type definitions
-#if BITS == 64
-  typedef double f64;
-  typedef int64_t i64;
-  typedef uint64_t u64;
-#endif
-typedef float f32;
-typedef int32_t i32;
-typedef uint32_t u32;
-typedef int16_t i16;
-typedef uint16_t u16;
-typedef int8_t i8;
-typedef uint8_t u8;
+typedef double    f64;
+typedef int64_t   i64;
+typedef uint64_t  u64;
+typedef float     f32;
+typedef int32_t   i32;
+typedef uint32_t  u32;
+typedef int16_t   i16;
+typedef uint16_t  u16;
+typedef int8_t    i8;
+typedef uint8_t   u8;
 
 #ifndef bool
   #include <stdbool.h>
@@ -121,8 +123,12 @@ typedef uint8_t u8;
 
 #ifdef __cplusplus
   #define RESTRICT
+  #define COMMON_PUBLICDEC extern "C"
+  #define COMMON_PUBLICDEF extern "C"
 #else
   #define RESTRICT restrict
+  #define COMMON_PUBLICDEC extern
+  #define COMMON_PUBLICDEF
 #endif
 
 #ifndef MAX_PATH_LENGTH

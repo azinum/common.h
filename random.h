@@ -7,12 +7,12 @@
   typedef size_t Random;
 #endif
 
-void random_init(Random seed);
-Random random_get_current_seed(void);
-Random random_lc(void);
-Random random_xor_shift(void);
-Random random_number(void);
-f32 random_f32(void);
+COMMON_PUBLICDEC void random_init(Random seed);
+COMMON_PUBLICDEC Random random_get_current_seed(void);
+COMMON_PUBLICDEC Random random_lc(void);
+COMMON_PUBLICDEC Random random_xor_shift(void);
+COMMON_PUBLICDEC Random random_number(void);
+COMMON_PUBLICDEC f32 random_f32(void);
 
 #endif // _RANDOM_H
 
@@ -20,14 +20,17 @@ f32 random_f32(void);
 
 static Random current_seed = 2147483647;
 
+COMMON_PUBLICDEF
 void random_init(Random seed) {
   current_seed = seed;
 }
 
+COMMON_PUBLICDEF
 Random random_get_current_seed(void) {
   return current_seed;
 }
 
+COMMON_PUBLICDEF
 Random random_lc(void) {
   const Random a = 16807;
   const Random multiplier = 2147483647;
@@ -35,6 +38,7 @@ Random random_lc(void) {
   return (current_seed = (current_seed * a + increment) % multiplier);
 }
 
+COMMON_PUBLICDEF
 Random random_xor_shift(void) {
   current_seed ^= current_seed << 13;
   current_seed ^= current_seed >> 17;
@@ -42,10 +46,12 @@ Random random_xor_shift(void) {
   return current_seed;
 }
 
+COMMON_PUBLICDEF
 Random random_number(void) {
   return random_lc();
 }
 
+COMMON_PUBLICDEF
 f32 random_f32(void) {
   return (i32)random_number() / (f32)INT32_MAX;
 }

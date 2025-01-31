@@ -33,15 +33,16 @@ typedef struct Arena {
   size_t size;
 } Arena;
 
-Arena arena_new(const size_t size);
-void* arena_alloc(Arena* arena, const size_t size);
-void arena_reset(Arena* arena);
-void arena_free(Arena* arena);
+COMMON_PUBLICDEC Arena arena_new(const size_t size);
+COMMON_PUBLICDEC void* arena_alloc(Arena* arena, const size_t size);
+COMMON_PUBLICDEC void arena_reset(Arena* arena);
+COMMON_PUBLICDEC void arena_free(Arena* arena);
 
 #endif // _ARENA_H
 
 #ifdef ARENA_IMPLEMENTATION
 
+COMMON_PUBLICDEF
 Arena arena_new(const size_t size) {
   Arena arena = {
     .data = (u8*)arena_memory_malloc(size),
@@ -52,6 +53,7 @@ Arena arena_new(const size_t size) {
   return arena;
 }
 
+COMMON_PUBLICDEF
 void* arena_alloc(Arena* arena, const size_t size) {
   ASSERT(arena != NULL);
   if (arena->index + size <= arena->size) {
@@ -62,10 +64,12 @@ void* arena_alloc(Arena* arena, const size_t size) {
   return NULL;
 }
 
+COMMON_PUBLICDEF
 void arena_reset(Arena* arena) {
   arena->index = 0;
 }
 
+COMMON_PUBLICDEF
 void arena_free(Arena* arena) {
   ASSERT(arena != NULL);
   arena_memory_free(arena->data);

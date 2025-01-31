@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-
 #include "common.h"
 
 typedef struct Ticket {
@@ -62,23 +61,23 @@ typedef struct Thread_state {
 
 #endif // _THREAD_H
 
-extern void thread_init(void);
-extern i32 thread_create(thread_func_sig thread_func, void* data);
-extern i32 thread_create_v2(void* thread_func, void* data);
-extern Result thread_join(i32 id);
-extern void thread_exit(void);
+COMMON_PUBLICDEC void thread_init(void);
+COMMON_PUBLICDEC i32 thread_create(thread_func_sig thread_func, void* data);
+COMMON_PUBLICDEC i32 thread_create_v2(void* thread_func, void* data);
+COMMON_PUBLICDEC Result thread_join(i32 id);
+COMMON_PUBLICDEC void thread_exit(void);
 
-extern size_t atomic_fetch_add(volatile size_t* target, size_t value);
-extern size_t atomic_fetch_sub(volatile size_t* target, size_t value);
-extern size_t atomic_load(volatile size_t* target);
-extern void atomic_store(volatile size_t* target, size_t value);
-extern size_t atomic_compare_exchange(volatile size_t* target, size_t value, size_t expected);
-extern Ticket ticket_mutex_new(void);
-extern void ticket_mutex_begin(Ticket* mutex);
-extern void ticket_mutex_end(Ticket* mutex);
-extern void spin_wait(void);
-extern Barrier barrier_new(size_t thread_count);
-extern void barrier_wait(Barrier* barrier);
+COMMON_PUBLICDEC size_t atomic_fetch_add(volatile size_t* target, size_t value);
+COMMON_PUBLICDEC size_t atomic_fetch_sub(volatile size_t* target, size_t value);
+COMMON_PUBLICDEC size_t atomic_load(volatile size_t* target);
+COMMON_PUBLICDEC void atomic_store(volatile size_t* target, size_t value);
+COMMON_PUBLICDEC size_t atomic_compare_exchange(volatile size_t* target, size_t value, size_t expected);
+COMMON_PUBLICDEC Ticket ticket_mutex_new(void);
+COMMON_PUBLICDEC void ticket_mutex_begin(Ticket* mutex);
+COMMON_PUBLICDEC void ticket_mutex_end(Ticket* mutex);
+COMMON_PUBLICDEC void spin_wait(void);
+COMMON_PUBLICDEC Barrier barrier_new(size_t thread_count);
+COMMON_PUBLICDEC void barrier_wait(Barrier* barrier);
 
 #ifdef __cplusplus
 }
@@ -92,6 +91,7 @@ static Thread_state thread_state = {};
 
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
 
+COMMON_PUBLICDEF
 void thread_init(void) {
   for (size_t i = 0; i < MAX_THREADS; ++i) {
     Thread* t      = &thread_state.threads[i];
@@ -103,10 +103,12 @@ void thread_init(void) {
   thread_state.mutex = ticket_mutex_new();
 }
 
+COMMON_PUBLICDEF
 i32 thread_create(thread_func_sig thread_func, void* data) {
   return thread_create_v2((void*)thread_func, data);
 }
 
+COMMON_PUBLICDEF
 i32 thread_create_v2(void* thread_func, void* data) {
   ticket_mutex_begin(&thread_state.mutex); // use mutex here so there will be no thread id collisions
   Thread* thread = NULL;
@@ -144,6 +146,7 @@ i32 thread_create_v2(void* thread_func, void* data) {
   return id;
 }
 
+COMMON_PUBLICDEF
 Result thread_join(i32 id) {
   ASSERT(id >= 0 && id < MAX_THREADS);
   Thread* thread = &thread_state.threads[id];
@@ -161,6 +164,7 @@ Result thread_join(i32 id) {
   return Ok;
 }
 
+COMMON_PUBLICDEF
 void thread_exit(void) {
   pthread_exit(NULL);
 }
@@ -175,6 +179,7 @@ DWORD WINAPI win_thread_func_wrapper(LPVOID data) {
   return 1;
 }
 
+COMMON_PUBLICDEF
 void thread_init(void) {
   for (size_t i = 0; i < MAX_THREADS; ++i) {
     Thread* t           = &thread_state.threads[i];
@@ -185,10 +190,12 @@ void thread_init(void) {
   }
 }
 
+COMMON_PUBLICDEF
 i32 thread_create(thread_func_sig thread_func, void* data) {
   return thread_create_v2(thread_func, data);
 }
 
+COMMON_PUBLICDEF
 i32 thread_create_v2(void* thread_func, void* data) {
   ticket_mutex_begin(&thread_state.mutex);
   Thread* thread = NULL;
@@ -226,6 +233,7 @@ i32 thread_create_v2(void* thread_func, void* data) {
   return -1;
 }
 
+COMMON_PUBLICDEF
 Result thread_join(i32 id) {
   ASSERT(id >= 0 && id < MAX_THREADS);
   Thread* thread = &thread_state.threads[id];
@@ -235,32 +243,39 @@ Result thread_join(i32 id) {
   return Ok;
 }
 
+COMMON_PUBLICDEF
 void thread_exit(void) {
   // nothing to do
 }
 
 #endif
 
+COMMON_PUBLICDEC
 inline size_t atomic_fetch_add(volatile size_t* target, size_t value) {
   return __atomic_fetch_add(target, value, __ATOMIC_SEQ_CST);
 }
 
+COMMON_PUBLICDEC
 inline size_t atomic_fetch_sub(volatile size_t* target, size_t value) {
   return __atomic_fetch_sub(target, value, __ATOMIC_SEQ_CST);
 }
 
+COMMON_PUBLICDEC
 inline size_t atomic_load(volatile size_t* target) {
   return __atomic_load_n(target, __ATOMIC_SEQ_CST);
 }
 
+COMMON_PUBLICDEC
 inline void atomic_store(volatile size_t* target, size_t value) {
   __atomic_store_n(target, value, __ATOMIC_SEQ_CST);
 }
 
+COMMON_PUBLICDEC
 inline size_t atomic_compare_exchange(volatile size_t* target, size_t value, size_t expected) {
   return __atomic_compare_exchange(target, &expected, &value, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 }
 
+COMMON_PUBLICDEC
 inline Ticket ticket_mutex_new(void) {
   return (Ticket) {
     .ticket = 0,
@@ -268,6 +283,7 @@ inline Ticket ticket_mutex_new(void) {
   };
 }
 
+COMMON_PUBLICDEC
 inline void ticket_mutex_begin(Ticket* mutex) {
   size_t ticket = atomic_fetch_add(&mutex->ticket, 1);
   while (ticket != mutex->serving) {
@@ -275,10 +291,12 @@ inline void ticket_mutex_begin(Ticket* mutex) {
   };
 }
 
+COMMON_PUBLICDEC
 inline void ticket_mutex_end(Ticket* mutex) {
   atomic_fetch_add(&mutex->serving, 1);
 }
 
+COMMON_PUBLICDEC
 inline void spin_wait(void) {
 #ifdef USE_SIMD
   _mm_pause();
@@ -287,6 +305,7 @@ inline void spin_wait(void) {
 #endif
 }
 
+COMMON_PUBLICDEC
 Barrier barrier_new(size_t thread_count) {
   return (Barrier) {
     .count = 0,
@@ -296,6 +315,7 @@ Barrier barrier_new(size_t thread_count) {
   };
 }
 
+COMMON_PUBLICDEC
 void barrier_wait(Barrier* barrier) {
   atomic_fetch_add(&barrier->count, 1);
   atomic_fetch_add(&barrier->waiting, 1);
