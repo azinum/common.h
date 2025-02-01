@@ -34,7 +34,7 @@ extern "C" {
   #define TIMER_START(...) \
     struct timespec _timer_end = {0}; \
     struct timespec _timer_start = {0}; \
-    clock_gettime(CLOCK_REALTIME, &_timer_start); \
+    clock_gettime(CLOCK_MONOTONIC, &_timer_start); \
     __VA_ARGS__
   #define TIMER_END() (clock_gettime(CLOCK_REALTIME, &_timer_end), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000000.0f) + _timer_end.tv_nsec) - (_timer_start.tv_nsec)) / 1000000000.0f)
 
@@ -150,7 +150,8 @@ const char* bool_str[] = { "false", "true" };
 #define Mb(n) (Kb(n * 1024))
 #define Gb(n) (Mb(n * 1024))
 
-#define PI32 3.14159265359f
+#define PI32  3.14159265359f
+#define TAU32 6.28318530717f
 
 #ifndef RANDOM_MAX
   #define RANDOM_MAX (size_t)((~0-1) >> 1)
