@@ -36,7 +36,7 @@ extern "C" {
     struct timespec _timer_start = {0}; \
     clock_gettime(CLOCK_MONOTONIC, &_timer_start); \
     __VA_ARGS__
-  #define TIMER_END() (clock_gettime(CLOCK_REALTIME, &_timer_end), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000000.0f) + _timer_end.tv_nsec) - (_timer_start.tv_nsec)) / 1000000000.0f)
+  #define TIMER_END() (clock_gettime(CLOCK_MONOTONIC, &_timer_end), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000000.0f) + _timer_end.tv_nsec) - (_timer_start.tv_nsec)) / 1000000000.0f)
 
 #else
   #define TIMER_START(...)
@@ -71,6 +71,10 @@ extern "C" {
 #define MIN(x, y) (x < y ? x : y)
 #define MAX(x, y) (x > y ? x : y)
 #define CLAMP(x, x_min, x_max) MIN(MAX(x_min, x), x_max)
+
+#define EPS (1e-6)
+#define SIGN(T, x) ((T)((x) > 0) - (T)((x) < 0))
+#define ABS(T, x) (T)(SIGN(T, x) * (x))
 
 // common type definitions
 typedef double    f64;
