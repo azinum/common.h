@@ -252,6 +252,8 @@ void thread_exit(void) {
 
 #endif
 
+
+// TODO: cross-platform
 COMMON_PUBLICDEF
 u32 thread_get_id(void) {
   u32 thread_id = 0;
@@ -262,7 +264,8 @@ u32 thread_get_id(void) {
 #elif defined(__x86_64__)
   asm("mov %%fs:0x10, %0" : "=r" (thread_id));
 #else
-  #error "thread_get_id: Unsupported architecture."
+  // #error "thread_get_id: Unsupported architecture."
+  NOT_IMPLEMENTED();
 #endif
   return thread_id;
 }
