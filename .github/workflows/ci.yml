@@ -7,6 +7,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
+        cc: [gcc, clang]
+        opt: [0, 3]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v1
@@ -16,12 +18,12 @@ jobs:
       - name: Build and run
         run: |
           cd tests
-          make OPT=0
-          make run
-          make clean
-          make OPT=3
-          make run
+          make COMPILER=${{ matrix.cc }} OPT=${{ matrix.opt }} && make run
   build-macos:
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+        opt: [0, 3]
     runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
@@ -31,8 +33,7 @@ jobs:
       - name: Build and run
         run: |
           cd tests
-          make
-          make run
+          make COMPILER=${{ matrix.cc }} OPT=${{ matrix.opt }} && make run
   build-windows:
     runs-on: windows-latest
     steps:
