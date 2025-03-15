@@ -486,7 +486,7 @@ inline i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list a
 #endif // USE_STB_SPRINTF
 
 void report_assert_failure(i32 fd, const char* filename, size_t line, const char* function_name, const char* message) {
-  STB_WRAP(dprintf)(fd, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+  dprintf(fd, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
 }
 
 i32 is_terminal(i32 fd) {
