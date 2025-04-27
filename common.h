@@ -98,7 +98,7 @@ typedef uint8_t   u8;
   #define TARGET_APPLE
 #elif __linux__
   #define TARGET_LINUX
-#elif _WIN32 || _WIN64
+#elif defined(_WIN32) || defined(_WIN64)
   #define WIN32_LEAN_AND_MEAN
   #define NOGDI
   #define NOUSER
@@ -498,7 +498,11 @@ inline i32 STB_WRAP(vsnprintf(char* str, size_t size, const char* fmt, va_list a
 #endif // USE_STB_SPRINTF
 
 void report_assert_failure(i32 fd, const char* filename, size_t line, const char* function_name, const char* message) {
-  STB_WRAP(dprintf)(fd, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+#ifdef TARGET_WINDOWS
+  printf("[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+#else
+  dprintf(fd, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+#endif
 }
 
 i32 is_terminal(i32 fd) {
