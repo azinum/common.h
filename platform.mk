@@ -24,7 +24,7 @@ endif
 
 ifeq (${PLATFORM}, WINDOWS)
 	LIBS+=
-	FLAGS+=-DNPROC=${NUMBER_OF_PROCESSORS}
+	FLAGS+=
 endif
 
 ifeq (${PLATFORM}, DARWIN)
