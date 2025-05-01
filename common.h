@@ -29,20 +29,6 @@
 extern "C" {
 #endif
 
-#ifndef NO_TIMER
-  #include <time.h>
-  #define TIMER_START(...) \
-    struct timespec _timer_end = {0}; \
-    struct timespec _timer_start = {0}; \
-    clock_gettime(CLOCK_MONOTONIC, &_timer_start); \
-    __VA_ARGS__
-  #define TIMER_END() (clock_gettime(CLOCK_MONOTONIC, &_timer_end), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000000.0f) + _timer_end.tv_nsec) - (_timer_start.tv_nsec)) / 1000000000.0f)
-
-#else
-  #define TIMER_START(...)
-  #define TIMER_END() 0
-#endif
-
 #if UINTPTR_MAX == 0xffffffffffffffff
   #define BITS 64
 #elif UINTPTR_MAX == 0xffffffff
@@ -101,7 +87,7 @@ typedef uint8_t   u8;
 #endif
 
 #ifndef NPROC
-  #define NPROC 4
+  #define NPROC (4)
 #endif
 
 #ifndef CACHELINESIZE
@@ -112,7 +98,7 @@ typedef uint8_t   u8;
   #define TARGET_APPLE
 #elif __linux__
   #define TARGET_LINUX
-#elif _WIN32 || _WIN64
+#elif defined(_WIN32) || defined(_WIN64)
   #define WIN32_LEAN_AND_MEAN
   #define NOGDI
   #define NOUSER
@@ -124,6 +110,32 @@ typedef uint8_t   u8;
 #else
   #error "unsupported target"
 #endif
+
+#ifndef NO_TIMER
+  #include <time.h>
+  #include <sys/time.h> // gettimeofday
+
+  #ifdef TARGET_WINDOWS
+    #define TIMER_START() \
+      struct timeval _timer_end = {0}; \
+      struct timeval _timer_start = {0}; \
+      gettimeofday(&_timer_start, NULL)
+
+    #define TIMER_END() (gettimeofday(&_timer_end, NULL), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000.0f) + _timer_end.tv_usec) - (_timer_start.tv_usec)) / 1000000.0f)
+  #else
+    #define TIMER_START(...) \
+      struct timespec _timer_end = {0}; \
+      struct timespec _timer_start = {0}; \
+      clock_gettime(CLOCK_MONOTONIC, &_timer_start); \
+      __VA_ARGS__
+    #define TIMER_END() (clock_gettime(CLOCK_MONOTONIC, &_timer_end), ((((_timer_end.tv_sec - _timer_start.tv_sec) * 1000000000.0f) + _timer_end.tv_nsec) - (_timer_start.tv_nsec)) / 1000000000.0f)
+  #endif
+
+#else
+  #define TIMER_START(...)
+  #define TIMER_END() 0
+#endif
+
 
 #ifdef __cplusplus
   #define RESTRICT
