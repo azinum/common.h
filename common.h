@@ -21,13 +21,13 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#include <stdint.h>
-#include <stddef.h> // size_t
-#include <stdarg.h> // va_list, va_arg
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
+#include <stddef.h> // size_t
+#include <stdarg.h> // va_list, va_arg
 
 #if UINTPTR_MAX == 0xffffffffffffffff
   #define BITS 64
@@ -221,15 +221,15 @@ const char* bool_str[] = { "false", "true" };
 #endif
 
 #ifdef USE_STB_SPRINTF
-extern i32 stb_printf(const char* fmt, ...);
-extern i32 stb_dprintf(i32 fd, const char* fmt, ...);
-extern i32 stb_sprintf(char* str, const char* fmt, ...);
-extern i32 stb_snprintf(char* str, size_t size, const char* fmt, ...);
+COMMON_PUBLICDEC i32 stb_printf(const char* fmt, ...);
+COMMON_PUBLICDEC i32 stb_dprintf(i32 fd, const char* fmt, ...);
+COMMON_PUBLICDEC i32 stb_sprintf(char* str, const char* fmt, ...);
+COMMON_PUBLICDEC i32 stb_snprintf(char* str, size_t size, const char* fmt, ...);
 
-extern i32 stb_vprintf(const char* fmt, va_list argp);
-extern i32 stb_vdprintf(i32 fd, const char* fmt, va_list argp);
-extern i32 stb_vsprintf(char* str, const char* fmt, va_list argp);
-extern i32 stb_vsnprintf(char* str, size_t size, const char* fmt, va_list argp);
+COMMON_PUBLICDEC i32 stb_vprintf(const char* fmt, va_list argp);
+COMMON_PUBLICDEC i32 stb_vdprintf(i32 fd, const char* fmt, va_list argp);
+COMMON_PUBLICDEC i32 stb_vsprintf(char* str, const char* fmt, va_list argp);
+COMMON_PUBLICDEC i32 stb_vsnprintf(char* str, size_t size, const char* fmt, va_list argp);
 #endif // USE_STB_SPRINTF
 
 #if defined(TARGET_LINUX) || defined(TARGET_APPLE)
@@ -442,6 +442,7 @@ char* strncpy(char* dest, const char* src, size_t n) {
 
 char sprintf_buffer[SPRINTF_BUFFER_SIZE] = {0};
 
+COMMON_PUBLICDEF
 i32 stb_printf(const char* fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
@@ -450,6 +451,7 @@ i32 stb_printf(const char* fmt, ...) {
   return n;
 }
 
+COMMON_PUBLICDEF
 i32 stb_dprintf(i32 fd,  const char* fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
@@ -458,6 +460,7 @@ i32 stb_dprintf(i32 fd,  const char* fmt, ...) {
   return n;
 }
 
+COMMON_PUBLICDEF
 i32 stb_sprintf(char* str, const char* fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
@@ -466,6 +469,7 @@ i32 stb_sprintf(char* str, const char* fmt, ...) {
   return n;
 }
 
+COMMON_PUBLICDEF
 i32 stb_snprintf(char* str, size_t size, const char* fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
@@ -474,20 +478,24 @@ i32 stb_snprintf(char* str, size_t size, const char* fmt, ...) {
   return n;
 }
 
+COMMON_PUBLICDEF
 i32 stb_vprintf(const char* fmt, va_list argp) {
   return stb_vdprintf(STDOUT_FILENO, fmt, argp);
 }
 
 // TODO: write until fmt is processed completely
+COMMON_PUBLICDEF
 i32 stb_vdprintf(i32 fd, const char* fmt, va_list argp) {
   size_t n = stbsp_vsnprintf(sprintf_buffer, SPRINTF_BUFFER_SIZE, fmt, argp);
   return write(fd, sprintf_buffer, n);
 }
 
+COMMON_PUBLICDEF
 i32 stb_vsprintf(char* str, const char* fmt, va_list argp) {
   return stbsp_vsprintf(str, fmt, argp);
 }
 
+COMMON_PUBLICDEF
 i32 stb_vsnprintf(char* str, size_t size, const char* fmt, va_list argp) {
   return stbsp_vsnprintf(str, size, fmt, argp);
 }

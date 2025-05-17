@@ -18,7 +18,7 @@ jobs:
       - name: Build and run
         run: |
           cd tests
-          make COMPILER=${{ matrix.cc }} OPT=${{ matrix.opt }} && make run
+          make CC=${{ matrix.cc }} OPT=${{ matrix.opt }} && make run
   build-macos:
     strategy:
       matrix:
@@ -33,7 +33,7 @@ jobs:
       - name: Build and run
         run: |
           cd tests
-          make COMPILER=${{ matrix.cc }} OPT=${{ matrix.opt }} && make run
+          make CC=${{ matrix.cc }} OPT=${{ matrix.opt }} && make run
   build-windows:
     runs-on: windows-latest
     steps:

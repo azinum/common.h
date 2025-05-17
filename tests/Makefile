@@ -1,8 +1,7 @@
 # Makefile
 
-COMPILER?=clang
+CC?=clang
 OPT?=3
-CC=${COMPILER}
 FLAGS?=-Wall -O${OPT} -I.. -DVERBOSE
 LIBS?=
 TARGETS=${subst .c,, ${shell find . -type f -name '*.c'}}
