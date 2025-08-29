@@ -91,7 +91,7 @@ static void log_color_end(void);
 void log_color_begin(Log_color color) {
 #ifndef NO_COLORS
   if (log_state.use_colors && (color >= 0) && (color < MAX_COLOR)) {
-    dprintf(STDOUT_FILENO, "%s", color_str[color]);
+    stb_dprintf(STDOUT_FILENO, "%s", color_str[color]);
   }
 #endif
 }
@@ -99,7 +99,7 @@ void log_color_begin(Log_color color) {
 void log_color_end(void) {
 #ifndef NO_COLORS
   if (log_state.use_colors) {
-    dprintf(STDOUT_FILENO, "%s", color_str[LOG_COLOR_RESET]);
+    stb_dprintf(STDOUT_FILENO, "%s", color_str[LOG_COLOR_RESET]);
   }
 #endif
 }
@@ -140,7 +140,7 @@ void log_print_tag(i32 fd, const char* tag, Log_color tag_color) {
 #ifdef TARGET_WINDOWS
   printf("[%s]: ", tag);
 #else
- dprintf(fd, "[%s]: ", tag);
+ stb_dprintf(fd, "[%s]: ", tag);
 #endif
   log_color_end();
 }

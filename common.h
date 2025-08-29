@@ -78,14 +78,6 @@ typedef uint8_t   u8;
   #include <stdbool.h>
 #endif
 
-#ifndef true
-  #define true 1
-#endif
-
-#ifndef false
-  #define false 0
-#endif
-
 #ifndef NPROC
   #define NPROC (4)
 #endif
@@ -202,17 +194,16 @@ const char* bool_str[] = { "false", "true" };
   #include <string.h> // memset, memcpy
 #endif
 
-#ifdef USE_STB_SPRINTF
-  #define STB_WRAP(...) stb_##__VA_ARGS__
-  #define printf(...)    stb_printf(__VA_ARGS__)
-  #define dprintf(...)   stb_dprintf(__VA_ARGS__)
-  #define sprintf(...)   stb_sprintf(__VA_ARGS__)
-  #define snprintf(...)  stb_snprintf(__VA_ARGS__)
+#ifndef USE_STB_SPRINTF
+  #define stb_printf(...)    printf(__VA_ARGS__)
+  #define stb_dprintf(...)   dprintf(__VA_ARGS__) // NOTE: on windows you must use stb_sprintf, because there is no such function in windows. dprintf on windows is used for debugging purposes, see https://learn.microsoft.com/en-us/previous-versions/windows/embedded/aa462568(v=msdn.10)
+  #define stb_sprintf(...)   sprintf(__VA_ARGS__)
+  #define stb_snprintf(...)  snprintf(__VA_ARGS__)
 
-  #define vprintf(...)   stb_vprintf(__VA_ARGS__)
-  #define vdprintf(...)  stb_vdprintf(__VA_ARGS__)
-  #define vsprintf(...)  stb_vsprintf(__VA_ARGS__)
-  #define vsnprintf(...) stb_vsnprintf(__VA_ARGS__)
+  #define stb_vprintf(...)   vprintf(__VA_ARGS__)
+  #define stb_vdprintf(...)  vdprintf(__VA_ARGS__)
+  #define stb_vsprintf(...)  vsprintf(__VA_ARGS__)
+  #define stb_vsnprintf(...) vsnprintf(__VA_ARGS__)
 #endif
 
 #if defined(NO_STDIO) && defined(NO_STDLIB)
@@ -446,7 +437,7 @@ COMMON_PUBLICDEF
 i32 stb_printf(const char* fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
-  size_t n = STB_WRAP(vprintf)(fmt, argp);
+  size_t n = stb_vprintf(fmt, argp);
   va_end(argp);
   return n;
 }
@@ -503,7 +494,11 @@ i32 stb_vsnprintf(char* str, size_t size, const char* fmt, va_list argp) {
 #endif // USE_STB_SPRINTF
 
 void report_assert_failure(i32 fd, const char* filename, size_t line, const char* function_name, const char* message) {
-  dprintf(STDERR_FILENO, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+#ifdef USE_STB_SPRINTF
+  stb_dprintf(STDERR_FILENO, "[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+#else
+  printf("[assert-failed]: %s:%zu %s(): %s\n", filename, line, function_name, message);
+#endif
 }
 
 i32 is_terminal(i32 fd) {
