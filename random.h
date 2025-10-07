@@ -3,6 +3,8 @@
 #ifndef _RANDOM_H
 #define _RANDOM_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
   #define RESTRICT
   #define RANDOM_PUBLICDEC extern "C"
@@ -22,7 +24,7 @@ RANDOM_PUBLICDEC Random random_get_current_seed(void);
 RANDOM_PUBLICDEC Random random_lc(void);
 RANDOM_PUBLICDEC Random random_xor_shift(void);
 RANDOM_PUBLICDEC Random random_number(void);
-RANDOM_PUBLICDEC f32 random_f32(void);
+RANDOM_PUBLICDEC float random_f32(void);
 
 #endif // _RANDOM_H
 
@@ -62,8 +64,8 @@ Random random_number(void) {
 }
 
 RANDOM_PUBLICDEF
-f32 random_f32(void) {
-  return (i32)random_number() / (f32)INT32_MAX;
+float random_f32(void) {
+  return (int32_t)random_number() / (float)INT32_MAX;
 }
 
 #endif // RANDOM_IMPLEMENTATION
