@@ -99,8 +99,6 @@ typedef uint8_t   u8;
   #include <io.h>
 #elif defined(TARGET_WASM)
   #define ssize_t intmax_t
-#else
-  #error "unsupported target"
 #endif
 
 #ifndef NO_TIMER
