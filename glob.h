@@ -15,6 +15,9 @@ bool glob(const char* pattern, const char* path);
 
 bool glob(const char* pattern, const char* path) {
   for (;;) {
+    if (*path == 0) {
+      return *pattern == 0;
+    }
     if (*pattern == '*') {
       if (*(pattern+1) == *(path+1)) {
         pattern += 1;

@@ -13,6 +13,7 @@ int main(void) {
 
 int test(void) {
   if (!glob("*.txt", "hello.txt")) return 1;
+  if (glob("*.txt", "h")) return 1;
   if (!glob("*.*", "hello.txt")) return 1;
   if (!glob("hello.*", "hello.txt")) return 1;
   if (glob("hello.*", "hellq.txt")) return 1;
