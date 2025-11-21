@@ -20,6 +20,8 @@
 #endif
 
 RANDOM_PUBLICDEC void random_init(Random seed);
+RANDOM_PUBLICDEC void random_freeze(size_t num_calls);
+RANDOM_PUBLICDEC bool random_is_frozen(void);
 RANDOM_PUBLICDEC Random random_get_current_seed(void);
 RANDOM_PUBLICDEC Random random_lc(void);
 RANDOM_PUBLICDEC Random random_xor_shift(void);
@@ -31,10 +33,22 @@ RANDOM_PUBLICDEC float random_f32(void);
 #ifdef RANDOM_IMPLEMENTATION
 
 static Random current_seed = 2147483647;
+static size_t freeze_count = 0;
 
 RANDOM_PUBLICDEF
 void random_init(Random seed) {
   current_seed = seed;
+  freeze_count = 0;
+}
+
+RANDOM_PUBLICDEF
+void random_freeze(size_t num_calls) {
+  freeze_count = num_calls;
+}
+
+RANDOM_PUBLICDEF
+inline bool random_is_frozen(void) {
+  return freeze_count > 0;
 }
 
 RANDOM_PUBLICDEF
@@ -60,6 +74,10 @@ Random random_xor_shift(void) {
 
 RANDOM_PUBLICDEF
 Random random_number(void) {
+  if (random_is_frozen()) {
+    freeze_count -= 1;
+    return current_seed;
+  }
   return random_lc();
 }
 

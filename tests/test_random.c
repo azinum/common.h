@@ -20,6 +20,15 @@ i32 test(void) {
     EXIT_SUCCESS,
   };
 
+  i32 n = random_number();
+  random_freeze(2);
+  if (random_number() != n || random_number() != n) {
+    return EXIT_FAILURE;
+  }
+  if (random_number() == n) {
+    return EXIT_FAILURE;
+  }
+
   random_init(1234);
   return exit_code[random_number() == 20739851];
 }
