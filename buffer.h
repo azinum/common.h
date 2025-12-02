@@ -4,6 +4,7 @@
 #define _BUFFER_H
 
 #include <stddef.h> // size_t
+#include <fcntl.h> // open
 
 #ifdef __cplusplus
   #define RESTRICT
