@@ -57,6 +57,7 @@ BUFFER_PUBLICDEC void buffer_insert(Buffer* buffer, char byte, size_t index);
 BUFFER_PUBLICDEC void buffer_erase(Buffer* buffer, size_t index);
 BUFFER_PUBLICDEC void buffer_free(Buffer* buffer);
 BUFFER_PUBLICDEC Buffer buffer_new_from_fd(int fd);
+BUFFER_PUBLICDEC Buffer buffer_new_from_file(const char* path);
 
 #endif // _BUFFER_H
 
@@ -173,6 +174,22 @@ Buffer buffer_new_from_fd(int fd) {
   else {
     buffer_free(&buffer);
   }
+  return buffer;
+}
+
+BUFFER_PUBLICDEF
+Buffer buffer_new_from_file(const char* path) {
+  Buffer buffer = (Buffer) {
+    .data = NULL,
+    .count = 0,
+    .size = 0,
+  };
+  int fd = open(path, O_RDONLY);
+  if (fd < 0) {
+    return buffer;
+  }
+  buffer = buffer_new_from_fd(fd);
+  close(fd);
   return buffer;
 }
 
